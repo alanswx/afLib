@@ -24,7 +24,10 @@
 #ifndef AFLIB_IAFLIB_H
 #define AFLIB_IAFLIB_H
 
-#include "Arduino.h"
+
+#include <stdint.h>
+#include <string>
+
 #include "afErrors.h"
 
 #define afMINIMUM_TIME_BETWEEN_REQUESTS     1000
@@ -85,7 +88,7 @@ public:
 
     virtual int setAttribute(const uint16_t attrId, const int64_t value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const String &value) = 0;
+    virtual int setAttribute(const uint16_t attrId, const std::string &value) = 0;
 
     virtual int setAttribute(const uint16_t attrId, const uint16_t valueLen, const char *value) = 0;
 

@@ -14,14 +14,103 @@
  * limitations under the License.
  */
 
-#include "Arduino.h"
 #include "afLib.h"
 #include "afErrors.h"
 #include "msg_types.h"
 
+typedef uint8_t byte;
+static const char *device = "/dev/spidev0.0";
+static uint8_t mode;
+static uint8_t bits = 8;
+static uint32_t speed = 1000000;
+static uint16_t delay_amount;
+static int fd = -1;
 #define IS_MCU_ATTR(x) (x >= 0 && x < 1024)
 
 static iafLib *_iaflib = NULL;
+
+static void pabort(const char *s)
+{
+	perror(s);
+	abort();
+}
+void noInterrupts()
+{
+}
+
+void interrupts()
+{
+}
+static uint8_t transfer(uint8_t data)
+{
+        int ret;
+        uint8_t tx[2];
+        tx[0]=data;
+        tx[1]=0;
+        uint8_t rx[1] = {0, };
+        struct spi_ioc_transfer tr;
+                tr.tx_buf = (unsigned long)tx;
+                tr.rx_buf = (unsigned long)rx;
+                tr.len = 1;
+                tr.delay_usecs = delay_amount;
+                tr.speed_hz = speed;
+                tr.bits_per_word = bits;
+/*
+        struct spi_ioc_transfer tr = {
+                .tx_buf = (unsigned long)tx,
+                .rx_buf = (unsigned long)rx,
+                .len = 1,
+                .delay_usecs = delay_amount,
+                .speed_hz = speed,
+                .bits_per_word = bits,
+        };
+*/
+        ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+        if (ret < 1)
+                pabort("can't send spi message");
+         printf("%.2X ", rx[0]);
+
+        return rx[0];
+}
+#if 0
+static uint8_t transfer(uint8_t *buffer,int size)
+{
+        int ret;
+        uint8_t *tx = buffer;
+        uint8_t rx[size] = {0, };
+        struct spi_ioc_transfer tr;
+                tr.tx_buf = (unsigned long)tx;
+                tr.rx_buf = (unsigned long)rx;
+                tr.len = size;
+                tr.delay_usecs = delay_amount;
+                tr.speed_hz = speed;
+                tr.bits_per_word = bits;
+/*
+        struct spi_ioc_transfer tr = {
+                .tx_buf = (unsigned long)tx,
+                .rx_buf = (unsigned long)rx,
+                .len = size,
+                .delay_usecs = delay_amount,
+                .speed_hz = speed,
+                .bits_per_word = bits,
+        };
+*/
+        ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+        if (ret < 1)
+                pabort("can't send spi message");
+
+        for (ret = 0; ret < size; ret++) {
+                if (!(ret % 6))
+                        puts("");
+                printf("%.2X ", rx[ret]);
+        }
+        puts("");
+
+        memcpy(buffer,rx,size);
+
+        return rx[0];
+}
+#endif
 
 iafLib *iafLib::create(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
                        onAttributeSet attrSet, onAttributeSetComplete attrSetComplete) {
@@ -34,10 +123,52 @@ iafLib *iafLib::create(const int chipSelect, const int mcuInterrupt, isr isrWrap
 
 afLib::afLib(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
              onAttributeSet attrSet, onAttributeSetComplete attrSetComplete) {
+	int ret = 0;
     queueInit();
     _request.p_value = NULL;
 
-    _spiSettings = SPISettings(1000000, LSBFIRST, SPI_MODE0);
+    
+    //_spiSettings = SPISettings(1000000, LSBFIRST, SPI_MODE0);
+	fd = open(device, O_RDWR);
+	if (fd < 0)
+		pabort("can't open device");
+
+	/*
+	 * spi mode
+	 */
+	ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+	if (ret == -1)
+		pabort("can't set spi mode");
+
+	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+	if (ret == -1)
+		pabort("can't get spi mode");
+
+	/*
+	 * bits per word
+	 */
+	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
+	if (ret == -1)
+		pabort("can't set bits per word");
+
+	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
+	if (ret == -1)
+		pabort("can't get bits per word");
+
+	/*
+	 * max speed hz
+	 */
+	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+	if (ret == -1)
+		pabort("can't set max speed hz");
+
+	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
+	if (ret == -1)
+		pabort("can't get max speed hz");
+
+	printf("spi mode: %d\n", mode);
+	printf("bits per word: %d\n", bits);
+	printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
     _interrupts_pending = 0;
     _state = STATE_IDLE;
 
@@ -54,12 +185,22 @@ afLib::afLib(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
     _chipSelect = chipSelect;
     _onAttrSet = attrSet;
     _onAttrSetComplete = attrSetComplete;
+
+    // Chip Select should be setup for us already
+
+wiringPiSetup();
+pinMode(0, INPUT);
+
+#if 0
     pinMode(chipSelect, OUTPUT);
     digitalWrite(chipSelect, HIGH);
     SPI.begin();
 
     pinMode(mcuInterrupt, INPUT);
     attachInterrupt(mcuInterrupt, isrWrapper, FALLING);
+#endif
+    // we need to setup the interrupt pin as a GPIO
+
 }
 
 void afLib::loop(void) {
@@ -79,7 +220,7 @@ void afLib::loop(void) {
                 break;
 
             default:
-                Serial.println("loop: request type!");
+                fprintf(stdout,"loop: request type!\n");
         }
     }
 
@@ -143,7 +284,7 @@ int afLib::setAttribute(const uint16_t attrId, const int64_t value) {
                     (uint8_t *) &value);
 }
 
-int afLib::setAttribute(const uint16_t attrId, const String &value) {
+int afLib::setAttribute(const uint16_t attrId, const std::string &value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, value.length(),
                     (uint8_t *) value.c_str());
@@ -195,7 +336,8 @@ int afLib::doGetAttribute(uint8_t requestId, uint16_t attrId) {
 
     _writeCmd = new Command(requestId, MSG_TYPE_GET, attrId);
     if (!_writeCmd->isValid()) {
-        Serial.print("getAttribute invalid command:");
+        fprintf(stdout,"getAttribute invalid command:");
+        //Serial.print("getAttribute invalid command:");
         _writeCmd->dumpBytes();
         _writeCmd->dump();
         delete (_writeCmd);
@@ -216,7 +358,8 @@ int afLib::doSetAttribute(uint8_t requestId, uint16_t attrId, uint16_t valueLen,
 
     _writeCmd = new Command(requestId, MSG_TYPE_SET, attrId, valueLen, value);
     if (!_writeCmd->isValid()) {
-        Serial.print("setAttributeComplete invalid command:");
+        fprintf(stdout,"setAttributeComplete invalid command:");
+        //Serial.print("setAttributeComplete invalid command:");
         _writeCmd->dumpBytes();
         _writeCmd->dump();
         delete (_writeCmd);
@@ -237,7 +380,7 @@ int afLib::doUpdateAttribute(uint8_t requestId, uint16_t attrId, uint8_t status,
 
     _writeCmd = new Command(requestId, MSG_TYPE_UPDATE, attrId, status, 3 /* MCU Set it */, valueLen, value);
     if (!_writeCmd->isValid()) {
-        Serial.print("updateAttribute invalid command:");
+        fprintf(stdout,"updateAttribute invalid command:");
         _writeCmd->dumpBytes();
         _writeCmd->dump();
         delete (_writeCmd);
@@ -252,18 +395,18 @@ int afLib::doUpdateAttribute(uint8_t requestId, uint16_t attrId, uint8_t status,
 
 int afLib::parseCommand(const char *cmd) {
     if (_interrupts_pending > 0 || _writeCmd != NULL) {
-        Serial.print("Busy: ");
-        Serial.print(_interrupts_pending);
-        Serial.print(", ");
-        Serial.println(_writeCmd != NULL);
+        fprintf(stdout,"Busy: ");
+        fprintf(stdout,"%d",_interrupts_pending);
+        fprintf(stdout,", ");
+        fprintf(stdout,"%d\n",(_writeCmd != NULL));
         return afERROR_BUSY;
     }
 
     int reqId = _requestId++;
     _writeCmd = new Command(reqId, cmd);
     if (!_writeCmd->isValid()) {
-        Serial.print("BAD: ");
-        Serial.println(cmd);
+        fprintf(stdout,"BAD: ");
+        fprintf(stdout,"%s\n",cmd);
         _writeCmd->dumpBytes();
         _writeCmd->dump();
         delete (_writeCmd);
@@ -310,7 +453,7 @@ void afLib::checkInterrupt(void) {
                 } else {
                     // Try resending the preamble
                     _state = STATE_STATUS_SYNC;
-                    Serial.println("Collision");
+                    fprintf(stdout,"Collision\n");//Serial.println("Collision");
 //          _txStatus->dumpBytes();
 //          _rxStatus->dumpBytes();
                 }
@@ -403,15 +546,15 @@ void afLib::checkInterrupt(void) {
 }
 
 void afLib::beginSPI() {
-    SPI.beginTransaction(_spiSettings);
-    digitalWrite(_chipSelect, LOW);
+    //SPI.beginTransaction(_spiSettings);
+    //digitalWrite(_chipSelect, LOW);
     delayMicroseconds(8);
 }
 
 void afLib::endSPI() {
     //delayMicroseconds(1);
-    digitalWrite(_chipSelect, HIGH);
-    SPI.endTransaction();
+    //digitalWrite(_chipSelect, HIGH);
+    //SPI.endTransaction();
 }
 
 int afLib::exchangeStatus(StatusCommand *tx, StatusCommand *rx) {
@@ -423,16 +566,22 @@ int afLib::exchangeStatus(StatusCommand *tx, StatusCommand *rx) {
 
     beginSPI();
 
-    byte cmd = SPI.transfer(bytes[index++]);
+    //byte cmd = SPI.transfer(bytes[index++]);
+    byte cmd = transfer(bytes[index++]);
     if (cmd != 0x30 && cmd != 0x31) {
-        Serial.print("exchangeStatus bad cmd: ");
-        Serial.println(cmd, HEX);
+        fprintf(stdout,"exchangeStatus bad cmd: ");
+//Serial.print("exchangeStatus bad cmd: ");
+        fprintf(stdout,"%x\n",cmd);
+        //Serial.println(cmd, HEX);
         result = -afERROR_INVALID_COMMAND;
     }
 
-    rx->setBytesToSend(SPI.transfer(bytes[index + 0]) | (SPI.transfer(bytes[index + 1]) << 8));
-    rx->setBytesToRecv(SPI.transfer(bytes[index + 2]) | (SPI.transfer(bytes[index + 3]) << 8));
-    rx->setChecksum(SPI.transfer(tx->getChecksum()));
+    //rx->setBytesToSend(SPI.transfer(bytes[index + 0]) | (SPI.transfer(bytes[index + 1]) << 8));
+    //rx->setBytesToRecv(SPI.transfer(bytes[index + 2]) | (SPI.transfer(bytes[index + 3]) << 8));
+    //rx->setChecksum(SPI.transfer(tx->getChecksum()));
+    rx->setBytesToSend(transfer(bytes[index + 0]) | (transfer(bytes[index + 1]) << 8));
+    rx->setBytesToRecv(transfer(bytes[index + 2]) | (transfer(bytes[index + 3]) << 8));
+    rx->setChecksum(transfer(tx->getChecksum()));
 
     endSPI();
 
@@ -454,17 +603,22 @@ int afLib::writeStatus(StatusCommand *c) {
 
     beginSPI();
 
-    byte cmd = SPI.transfer(bytes[index++]);
+    byte cmd = transfer(bytes[index++]);
+    //byte cmd = SPI.transfer(bytes[index++]);
     if (cmd != 0x30 && cmd != 0x31) {
-        Serial.print("writeStatus bad cmd: ");
-        Serial.println(cmd, HEX);
+        fprintf(stdout,"writeStatus bad cmd: ");
+        fprintf(stdout,"%x\n",cmd);
+        //Serial.print("writeStatus bad cmd: ");
+        //Serial.println(cmd, HEX);
         result = afERROR_INVALID_COMMAND;
     }
 
     for (int i = 1; i < len; i++) {
-        SPI.transfer(bytes[i]);
+        //SPI.transfer(bytes[i]);
+        transfer(bytes[i]);
     }
-    SPI.transfer(c->getChecksum());
+    //SPI.transfer(c->getChecksum());
+    transfer(c->getChecksum());
 
     endSPI();
 
@@ -484,7 +638,8 @@ void afLib::sendBytes() {
     beginSPI();
 
     for (int i = 0; i < len; i++) {
-        SPI.transfer(bytes[i]);
+        //SPI.transfer(bytes[i]);
+        transfer(bytes[i]);
     }
 
     endSPI();
@@ -506,7 +661,8 @@ void afLib::recvBytes() {
     beginSPI();
 
     for (int i = 0; i < len; i++) {
-        _readBuffer[i + _readCmdOffset] = SPI.transfer(0);
+        //_readBuffer[i + _readCmdOffset] = SPI.transfer(0);
+        _readBuffer[i + _readCmdOffset] = transfer(0);
     }
 
     endSPI();
@@ -525,22 +681,29 @@ bool afLib::isIdle() {
 }
 
 void afLib::dumpBytes(char *label, int len, uint8_t *bytes) {
-    Serial.println(label);
+    fprintf(stdout,"%s\n",label);
+    //Serial.println(label);
     for (int i = 0; i < len; i++) {
         if (i > 0) {
-            Serial.print(", ");
+            //Serial.print(", ");
+            fprintf(stdout,", ");
         }
         uint8_t b = bytes[i] & 0xff;
 
         if (b < 0x10) {
-            Serial.print("0x0");
-            Serial.print(b, HEX);
+            //Serial.print("0x0");
+            //Serial.print(b, HEX);
+            fprintf(stdout,"0x0");
+            fprintf(stdout,"%x",b);
         } else {
-            Serial.print("0x");
-            Serial.print(b, HEX);
+            //Serial.print("0x");
+            //Serial.print(b, HEX);
+            fprintf(stdout,"0x");
+            fprintf(stdout,"%x",b);
         }
     }
-    Serial.println("");
+    //Serial.println("");
+    fprintf(stdout,"\n");
 }
 
 void afLib::mcuISR() {
@@ -552,25 +715,26 @@ void afLib::printState(int state) {
     return;
     switch (state) {
         case STATE_IDLE:
-            Serial.println("STATE_IDLE");
+            //Serial.println("STATE_IDLE");
+            fprintf(stdout,"STATE_IDLE\n");
             break;
         case STATE_STATUS_SYNC:
-            Serial.println("STATE_STATUS_SYNC");
+            fprintf(stdout,"STATE_STATUS_SYNC\n");
             break;
         case STATE_STATUS_ACK:
-            Serial.println("STATE_STATUS_ACK");
+            fprintf(stdout,"STATE_STATUS_ACK\n");
             break;
         case STATE_SEND_BYTES:
-            Serial.println("STATE_SEND_BYTES");
+            fprintf(stdout,"STATE_SEND_BYTES\n");
             break;
         case STATE_RECV_BYTES:
-            Serial.println("STATE_RECV_BYTES");
+            fprintf(stdout,"STATE_RECV_BYTES\n");
             break;
         case STATE_CMD_COMPLETE:
-            Serial.println("STATE_CMD_COMPLETE");
+            fprintf(stdout,"STATE_CMD_COMPLETE\n");
             break;
         default:
-            Serial.println("Unknown State!");
+            fprintf(stdout,"Unknown State!\n");
             break;
     }
 }

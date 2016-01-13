@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-#include "Arduino.h"
+//#include "Arduino.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <stdio.h>
 #include "StatusCommand.h"
 
 StatusCommand::StatusCommand(uint16_t bytesToSend) {
@@ -110,6 +115,23 @@ void StatusCommand::dumpBytes() {
     int bytes[len];
     getBytes(bytes);
 
+
+	fprintf(stdout,"len : %d\n",len);
+	fprintf(stdout,"data: ");
+    for (int i = 0; i < len; i++) {
+        if (i > 0) {
+            fprintf(stdout,", ");
+        }
+        int b = bytes[i] & 0xff;
+        if (b < 0x10) {
+            fprintf(stdout,"0x0%x",b);
+        } else {
+            fprintf(stdout,"0x%x",b);
+        }
+
+    }
+fprintf(stdout,"\n");
+#if 0
     Serial.print("len  : ");
     Serial.println(len);
     Serial.print("data : ");
@@ -127,15 +149,22 @@ void StatusCommand::dumpBytes() {
         }
     }
     Serial.println("");
+#endif
 }
 
 void StatusCommand::dump() {
+#if 0
     Serial.print("cmd              : ");
     Serial.println(_cmd == 0x30 ? "STATUS" : "STATUS_ACK");
     Serial.print("bytes to send    : ");
     Serial.println(_bytesToSend, DEC);
     Serial.print("bytes to receive : ");
     Serial.println(_bytesToRecv, DEC);
+#endif
+
+    fprintf(stdout,"cmd              : %s \n", (_cmd == 0x30 ? "STATUS" : "STATUS_ACK"));
+    fprintf(stdout,"bytes to send    : %d \n",  _bytesToSend);
+    fprintf(stdout,"bytes to receive : %d \n", _bytesToRecv);
 }
 
 

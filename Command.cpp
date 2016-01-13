@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-#include "Arduino.h"
+//#include "Arduino.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
 #include <stdio.h>
 #include "Command.h"
 #include "msg_types.h"
+
+typedef uint8_t byte;
 
 #define CMD_HDR_LEN  4    // 4 byte header on all commands
 #define CMD_VAL_LEN  2    // 2 byte value length for commands that have a value
@@ -121,7 +127,8 @@ int Command::strToValue(char *valueStr, uint8_t *value) {
 }
 
 uint16_t Command::strToAttrId(char *attrIdStr) {
-    return String(attrIdStr).toInt();
+    //return std::string(attrIdStr).toInt();
+    return atoi(attrIdStr);
 }
 
 uint8_t Command::strToCmd(char *cmdStr) {
@@ -219,7 +226,8 @@ void Command::dumpBytes() {
         int b = bytes[i] & 0xff;
         sprintf(&_printBuf[strlen(_printBuf)], "%02x", b);
     }
-    Serial.println(_printBuf);
+    //Serial.println(_printBuf);
+    fprintf(stdout,"%s\n",_printBuf);
 }
 
 void Command::dump() {
@@ -234,7 +242,8 @@ void Command::dump() {
             sprintf(&_printBuf[strlen(_printBuf)], "%02x", b);
         }
     }
-    Serial.println(_printBuf);
+    fprintf(stdout,"%s\n",_printBuf);
+    //Serial.println(_printBuf);
 }
 
 byte getVal(char c) {
@@ -245,8 +254,10 @@ byte getVal(char c) {
     else if (c >= 'a' && c <= 'f')
         return (byte)(c - 'a' + 10);
 
-    Serial.print("bad hex char: ");
-    Serial.println(c);
+    //Serial.print("bad hex char: ");
+    fprintf(stdout,"bad hex char: ");
+    //Serial.println(c);
+    fprintf(stdout,"%c\n",c);
 
     return 0;
 }

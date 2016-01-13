@@ -17,8 +17,21 @@
 #ifndef AFLIB_H__
 #define AFLIB_H__
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+#include <wiringPi.h>
+//#define HIGH 1
+//#define LOW 0
+
+
 #include "iafLib.h"
-#include "SPI.h"
 #include "Command.h"
 #include "StatusCommand.h"
 
@@ -60,7 +73,7 @@ public:
 
     virtual int setAttribute(const uint16_t attrId, const int64_t value);
 
-    virtual int setAttribute(const uint16_t attrId, const String &value);
+    virtual int setAttribute(const uint16_t attrId, const std::string &value);
 
     virtual int setAttribute(const uint16_t attrId, const uint16_t valueLen, const char *value);
 
@@ -73,7 +86,7 @@ public:
     virtual void mcuISR();
 
 private:
-    SPISettings _spiSettings;
+    //SPISettings _spiSettings;
     int _chipSelect;
     volatile int _interrupts_pending;
     int _state;
