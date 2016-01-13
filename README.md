@@ -1,5 +1,7 @@
 # Afero Secure Radio Library #
 
+ALANSWX HACK - note this isn't working on linux/Pi yet. It will probably brick your Afero.
+
 **Version 0.8.75**
 
 ## Welcome ##
