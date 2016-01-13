@@ -17,7 +17,6 @@
 #ifndef STATUS_COMMAND_H__
 #define STATUS_COMMAND_H__
 
-#include "Arduino.h"
 
 class StatusCommand {
 public:

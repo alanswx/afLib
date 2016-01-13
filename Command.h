@@ -17,7 +17,6 @@
 #ifndef COMMAND_H__
 #define COMMAND_H__
 
-#include "Arduino.h"
 
 #define SPI_CMD_MAX_LEN  256
 
