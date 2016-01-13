@@ -23,9 +23,13 @@ static const char *device = "/dev/spidev0.0";
 static uint8_t mode;
 static uint8_t bits = 8;
 static uint32_t speed = 1000000;
+//static uint32_t speed = 500000;
 static uint16_t delay_amount;
 static int fd = -1;
 #define IS_MCU_ATTR(x) (x >= 0 && x < 1024)
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 
 static iafLib *_iaflib = NULL;
 
@@ -41,6 +45,43 @@ void noInterrupts()
 void interrupts()
 {
 }
+
+#if 0
+static void transfer(int junk)
+{
+        int ret;
+        uint8_t tx[] = {
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0x40, 0x00, 0x00, 0x00, 0x00, 0x95,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xDE, 0xAD, 0xBE, 0xEF, 0xBA, 0xAD,
+                0xF0, 0x0D,
+        };
+        uint8_t rx[ARRAY_SIZE(tx)] = {0, };
+        struct spi_ioc_transfer tr = {
+                .tx_buf = (unsigned long)tx,
+                .rx_buf = (unsigned long)rx,
+                .len = ARRAY_SIZE(tx),
+                .delay_usecs = delay,
+                .speed_hz = speed,
+                .bits_per_word = bits,
+        };
+
+        ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+        if (ret < 1)
+                pabort("can't send spi message");
+
+        for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
+                if (!(ret % 6))
+                        puts("");
+                printf("%.2X ", rx[ret]);
+        }
+        puts("");
+}
+#endif
+
 static uint8_t transfer(uint8_t data)
 {
         int ret;
@@ -55,6 +96,10 @@ static uint8_t transfer(uint8_t data)
                 tr.delay_usecs = delay_amount;
                 tr.speed_hz = speed;
                 tr.bits_per_word = bits;
+                tr.cs_change= 0;
+                //tr.tx_nbits= 0;
+                //tr.rx_nbits= 0;
+                tr.pad= 0;
 /*
         struct spi_ioc_transfer tr = {
                 .tx_buf = (unsigned long)tx,
@@ -67,7 +112,10 @@ static uint8_t transfer(uint8_t data)
 */
         ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
         if (ret < 1)
+        {
+           printf("%.2X ", tx[0]);
                 pabort("can't send spi message");
+        }
          printf("%.2X ", rx[0]);
 
         return rx[0];
@@ -454,8 +502,8 @@ void afLib::checkInterrupt(void) {
                     // Try resending the preamble
                     _state = STATE_STATUS_SYNC;
                     fprintf(stdout,"Collision\n");//Serial.println("Collision");
-//          _txStatus->dumpBytes();
-//          _rxStatus->dumpBytes();
+          _txStatus->dumpBytes();
+          _rxStatus->dumpBytes();
                 }
                 printState(_state);
                 break;
@@ -622,8 +670,8 @@ int afLib::writeStatus(StatusCommand *c) {
 
     endSPI();
 
-//  c->dump();
-//  c->dumpBytes();
+  c->dump();
+  c->dumpBytes();
 
     return result;
 }
