@@ -213,6 +213,8 @@ int gpio_fd_close(int fd)
 	return close(fd);
 }
 
+#if 0
+
 /****************************************************************
  * Main
  ****************************************************************/
@@ -278,3 +280,7 @@ int main(int argc, char **argv, char **envp)
 	gpio_fd_close(gpio_fd);
 	return 0;
 }
+
+#endif
+
+

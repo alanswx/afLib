@@ -18,19 +18,23 @@
 #include "afErrors.h"
 #include "msg_types.h"
 
+#include "gpiolib.h"
+
 typedef uint8_t byte;
 static const char *device = "/dev/spidev0.0";
 //static uint8_t mode=SPI_CS_HIGH|SPI_LSB_FIRST;
-static uint8_t mode=SPI_CS_HIGH;
+//static uint8_t mode=SPI_CS_HIGH;
+static uint8_t mode;
 static uint8_t bits = 8;
 static uint32_t speed = 1000000;
 //static uint32_t speed = 500000;
-static uint16_t delay_amount;
+static uint16_t delay_amount =0 ;
 static int fd = -1;
 #define IS_MCU_ATTR(x) (x >= 0 && x < 1024)
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
+static int gpio_cs_fd;
 
 static iafLib *_iaflib = NULL;
 
@@ -104,15 +108,117 @@ uint8_t BitReverseTable256[] = {0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 
 static uint8_t rbo(uint8_t in)
 {
  return BitReverseTable256[in&0xff];
+//   return in;
 }
-static uint8_t transfer(uint8_t data)
+
+
+static void transfer2(int junk)
 {
         int ret;
+        int i;
+        uint8_t tx[] = {
+#if 1
+0x30, 0x00, 0x00, 0x00, 0x00, 0x30,
+#else
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0x40, 0x00, 0x00, 0x00, 0x00, 0x95,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xDE, 0xAD, 0xBE, 0xEF, 0xBA, 0xAD,
+                0xF0, 0x0D,
+#endif
+        };
+
+        for (i=0;i<ARRAY_SIZE(tx);i++) tx[i]=rbo(tx[i]);
+
+        uint8_t rx[ARRAY_SIZE(tx)] = {0, };
+        struct spi_ioc_transfer tr;
+                tr.tx_buf = (unsigned long)tx;
+                tr.rx_buf = (unsigned long)rx;
+                tr.len = ARRAY_SIZE(tx);
+                tr.delay_usecs = delay_amount;
+                tr.speed_hz = speed;
+                tr.bits_per_word = bits;
+                tr.cs_change= 0;
+                tr.pad= 0;
+#if 0
+        struct spi_ioc_transfer tr = {
+                .tx_buf = (unsigned long)tx,
+                .rx_buf = (unsigned long)rx,
+                .len = ARRAY_SIZE(tx),
+                .delay_usecs = delay,
+                .speed_hz = speed,
+                .bits_per_word = bits,
+
+        };
+#endif
+
+        ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+        if (ret < 1)
+                pabort("can't send spi message");
+
+        for (i=0;i<ARRAY_SIZE(rx);i++) rx[i]=rbo(rx[i]);
+
+        for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
+                if (!(ret % 6))
+                        puts("");
+                printf("%.2X ", rx[ret]);
+        }
+        puts("");
+}
+
+static void transfer_array(char *bytes,int len)
+{
+        int ret;
+        int i;
+        uint8_t *tx = (uint8_t *)bytes;
+
+        for (i=0;i<ARRAY_SIZE(tx);i++) tx[i]=rbo(tx[i]);
+
+        uint8_t rx[ARRAY_SIZE(tx)] = {0, };
+        struct spi_ioc_transfer tr;
+                tr.tx_buf = (unsigned long)tx;
+                tr.rx_buf = (unsigned long)rx;
+                tr.len = len;
+                tr.delay_usecs = delay_amount;
+                tr.speed_hz = speed;
+                tr.bits_per_word = bits;
+                tr.cs_change= 0;
+                tr.pad= 0;
+
+        ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+        if (ret < 1)
+                pabort("can't send spi message");
+
+        for (i=0;i<len;i++) rx[i]=rbo(rx[i]);
+
+        for (ret = 0; ret < len; ret++) {
+                if (!(ret % 6))
+                        puts("");
+                printf("%.2X ", rx[ret]);
+        }
+        puts("");
+fprintf(stdout,"delay_time = %d len = %d\n",delay_amount,tr.len);
+
+        memcpy(bytes,rx,len);
+}
+
+
+
+
+
+static uint8_t transfer(uint8_t data)
+{
+#if 1
+        int ret;
         uint8_t tx[2];
+         printf("transfer(%.2X)\n", data);
+        data = rbo(data);
+         printf("after rbo transfer(%.2X)\n", data);
         tx[0]=data;
         tx[1]=0;
-        uint8_t rx[1] = {0, };
-        data = rbo(data);
+        uint8_t rx[2] = {0, };
         struct spi_ioc_transfer tr;
                 tr.tx_buf = (unsigned long)tx;
                 tr.rx_buf = (unsigned long)rx;
@@ -140,9 +246,11 @@ static uint8_t transfer(uint8_t data)
            printf("%.2X ", tx[0]);
                 pabort("can't send spi message");
         }
-         printf("%.2X ", rx[0]);
+         printf("from afero: %.2X \n", rx[0]);
+         printf("from afero reverse: %.2X \n", rbo(rx[0]));
 
         return rbo(rx[0]);
+#endif
 }
 #if 0
 static uint8_t transfer(uint8_t *buffer,int size)
@@ -260,8 +368,23 @@ afLib::afLib(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
 
     // Chip Select should be setup for us already
 
-wiringPiSetup();
-pinMode(0, INPUT);
+
+        unsigned int gpio = 0;
+        int len;
+
+        //gpio_export(chipSelect);
+        //gpio_set_dir(chipSelect, 1);
+//        gpio_set_edge(chipSelect, "falling");
+        //gpio_cs_fd = gpio_fd_open(chipSelect);
+
+
+//wiringPiSetup();
+//pinMode(0, INPUT);
+//pinMode(_chipSelect, OUTPUT);
+
+#if 0
+    gpio_set_value(_chipSelect,HIGH);
+#endif
 
 #if 0
     pinMode(chipSelect, OUTPUT);
@@ -620,19 +743,24 @@ void afLib::checkInterrupt(void) {
 void afLib::beginSPI() {
     //SPI.beginTransaction(_spiSettings);
     //digitalWrite(_chipSelect, LOW);
-    delayMicroseconds(8);
+    //digitalWrite(2, LOW);
+    //gpio_set_value(_chipSelect,LOW);
+
+    //delayMicroseconds(8);
 }
 
 void afLib::endSPI() {
     //delayMicroseconds(1);
     //digitalWrite(_chipSelect, HIGH);
     //SPI.endTransaction();
+    //gpio_set_value(_chipSelect,HIGH);
 }
 
 int afLib::exchangeStatus(StatusCommand *tx, StatusCommand *rx) {
     int result = 0;
     uint16_t len = tx->getSize();
     int bytes[len];
+    char rbytes[len+1];
     int index = 0;
     tx->getBytes(bytes);
 
@@ -641,7 +769,27 @@ int afLib::exchangeStatus(StatusCommand *tx, StatusCommand *rx) {
 
 fprintf(stdout,"exhangeStatus len = %d index %d bytes[index]==%x bytes[%d]==%d\n",len,index,bytes[index],index+1,bytes[index+1]);
 
+    for (int i=0;i<len;i++)
+    {
+      rbytes[i]=bytes[i];
+    }
+    rbytes[len]=tx->getChecksum();
+    transfer_array(rbytes,len+1);
 
+    byte cmd = bytes[index++];
+    if (cmd != 0x30 && cmd != 0x31) {
+        fprintf(stdout,"exchangeStatus bad cmd: ");
+//Serial.print("exchangeStatus bad cmd: ");
+        fprintf(stdout,"%x\n",cmd);
+        //Serial.println(cmd, HEX);
+        result = -afERROR_INVALID_COMMAND;
+    }
+
+    rx->setBytesToSend(rbytes[index + 0] | (rbytes[index + 1] << 8));
+    rx->setBytesToRecv(rbytes[index + 2] | (rbytes[index + 3] << 8));
+    rx->setChecksum(rbytes[index+4]);
+
+#if 0
     //byte cmd = SPI.transfer(bytes[index++]);
     byte cmd = transfer(bytes[index++]);
     if (cmd != 0x30 && cmd != 0x31) {
@@ -655,11 +803,15 @@ fprintf(stdout,"exhangeStatus len = %d index %d bytes[index]==%x bytes[%d]==%d\n
     //rx->setBytesToSend(SPI.transfer(bytes[index + 0]) | (SPI.transfer(bytes[index + 1]) << 8));
     //rx->setBytesToRecv(SPI.transfer(bytes[index + 2]) | (SPI.transfer(bytes[index + 3]) << 8));
     //rx->setChecksum(SPI.transfer(tx->getChecksum()));
+fprintf(stdout,"first byte is correct\n");
     rx->setBytesToSend(transfer(bytes[index + 0]) | (transfer(bytes[index + 1]) << 8));
     rx->setBytesToRecv(transfer(bytes[index + 2]) | (transfer(bytes[index + 3]) << 8));
     rx->setChecksum(transfer(tx->getChecksum()));
+#endif
 
     endSPI();
+
+fprintf(stdout,"result: %d\n",result);
 
     return result;
 }
@@ -674,12 +826,22 @@ int afLib::writeStatus(StatusCommand *c) {
     int result = 0;
     uint16_t len = c->getSize();
     int bytes[len];
+    char rbytes[len+1];
     int index = 0;
     c->getBytes(bytes);
 
     beginSPI();
 
-    byte cmd = transfer(bytes[index++]);
+    for (int i=0;i<len;i++)
+    {
+      rbytes[i]=bytes[i];
+    }
+    rbytes[len]=c->getChecksum();
+    transfer_array(rbytes,len+1);
+
+    byte cmd = rbytes[index++];
+
+    //byte cmd = transfer(bytes[index++]);
     //byte cmd = SPI.transfer(bytes[index++]);
     if (cmd != 0x30 && cmd != 0x31) {
         fprintf(stdout,"writeStatus bad cmd: ");
@@ -689,12 +851,14 @@ int afLib::writeStatus(StatusCommand *c) {
         result = afERROR_INVALID_COMMAND;
     }
 
+#if 0
     for (int i = 1; i < len; i++) {
         //SPI.transfer(bytes[i]);
         transfer(bytes[i]);
     }
     //SPI.transfer(c->getChecksum());
     transfer(c->getChecksum());
+#endif
 
     endSPI();
 
@@ -713,14 +877,17 @@ void afLib::sendBytes() {
 
     beginSPI();
 
+fprintf(stdout,"sendBytes called len %d\n",len);
+    transfer_array((char *)bytes,len);
+/*
     for (int i = 0; i < len; i++) {
         //SPI.transfer(bytes[i]);
         transfer(bytes[i]);
     }
-
+*/
     endSPI();
 
-//  dumpBytes("Sending:", len, bytes);
+  dumpBytes("Sending:", len, bytes);
 
     _writeCmdOffset += len;
     _bytesToSend -= len;
@@ -736,14 +903,19 @@ void afLib::recvBytes() {
 
     beginSPI();
 
+fprintf(stdout,"recvBytes\n");
+    char * start =(char*)_readBuffer + _readCmdOffset;
+    transfer_array(start,len);
+#if 0
     for (int i = 0; i < len; i++) {
         //_readBuffer[i + _readCmdOffset] = SPI.transfer(0);
         _readBuffer[i + _readCmdOffset] = transfer(0);
     }
+#endif
 
     endSPI();
 
-//  dumpBytes("Receiving:", len, _readBuffer);
+  dumpBytes("Receiving:", len, _readBuffer);
 
     _readCmdOffset += len;
     _bytesToRecv -= len;
@@ -788,7 +960,7 @@ void afLib::mcuISR() {
 }
 
 void afLib::printState(int state) {
-    return;
+    //return;
     switch (state) {
         case STATE_IDLE:
             //Serial.println("STATE_IDLE");
