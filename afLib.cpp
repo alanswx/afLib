@@ -174,9 +174,11 @@ static void transfer_array(char *bytes,int len)
         int i;
         uint8_t *tx = (uint8_t *)bytes;
 
-        for (i=0;i<ARRAY_SIZE(tx);i++) tx[i]=rbo(tx[i]);
+        for (i=0;i<len;i++) tx[i]=rbo(tx[i]);
 
-        uint8_t rx[ARRAY_SIZE(tx)] = {0, };
+        uint8_t *rx = (uint8_t*)calloc(1,len);
+ //       uint8_t rx[len] = {0, };
+
         struct spi_ioc_transfer tr;
                 tr.tx_buf = (unsigned long)tx;
                 tr.rx_buf = (unsigned long)rx;
@@ -202,6 +204,7 @@ static void transfer_array(char *bytes,int len)
 fprintf(stdout,"delay_time = %d len = %d\n",delay_amount,tr.len);
 
         memcpy(bytes,rx,len);
+        free(rx);
 }
 
 
