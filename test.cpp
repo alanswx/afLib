@@ -32,13 +32,13 @@ int main(int argc, char *argv[])
         int nfds = 2;
         int gpio_fd, timeout, rc;
         char *buf[MAX_BUF];
-        unsigned int gpio = 0;
+        unsigned int gpio = 17;/*17;*/
         int len;
 
 #if 1
         gpio_export(gpio);
         gpio_set_dir(gpio, 0);
-//        gpio_set_edge(gpio, "falling");
+        gpio_set_edge(gpio, "falling");
         gpio_fd = gpio_fd_open(gpio);
 #endif
         timeout = POLL_TIMEOUT;
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 
   iafLib *theLib = iafLib::create(2,0,isr_callback,onAttributeSet_callback,onAttributeSetComplete_callback);
 theLib->mcuISR();
+   theLib->mcuISR();
         while (1) {
                 memset((void*)fdset, 0, sizeof(fdset));
 
@@ -55,6 +56,10 @@ theLib->mcuISR();
 
                 fdset[1].fd = gpio_fd;
                 fdset[1].events = POLLPRI;
+
+   lseek(gpio_fd, 0, SEEK_SET);    /* consume any prior interrupt */
+   read(gpio_fd, buf, sizeof (buf));
+
 
                 rc = poll(fdset, nfds, timeout);
 
@@ -70,6 +75,9 @@ theLib->mcuISR();
                 if (fdset[1].revents & POLLPRI) {
                         len = read(fdset[1].fd, buf, MAX_BUF);
                         printf("\npoll() GPIO %d interrupt occurred\n", gpio);
+   lseek(gpio_fd, 0, SEEK_SET);    /* consume interrupt */
+   read(gpio_fd, buf, sizeof (buf));
+
                         theLib->mcuISR();
                 }
 
