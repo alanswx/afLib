@@ -17,23 +17,11 @@
 #ifndef AFLIB_H__
 #define AFLIB_H__
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <string>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-#include <wiringPi.h>
-//#define HIGH 1
-//#define LOW 0
-
-
 #include "iafLib.h"
+#include "SPI.h"
 #include "Command.h"
 #include "StatusCommand.h"
+#include "afSPI.h"
 
 #define STATE_IDLE                          0
 #define STATE_STATUS_SYNC                   1
@@ -56,8 +44,8 @@ typedef struct {
 
 class afLib : public iafLib {
 public:
-    afLib(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
-          onAttributeSet attrSet, onAttributeSetComplete attrSetComplete);
+    afLib(const int mcuInterrupt, isr isrWrapper,
+          onAttributeSet attrSet, onAttributeSetComplete attrSetComplete, Stream *serial, afSPI *theSPI);
 
     virtual void loop(void);
 
@@ -73,7 +61,7 @@ public:
 
     virtual int setAttribute(const uint16_t attrId, const int64_t value);
 
-    virtual int setAttribute(const uint16_t attrId, const std::string &value);
+    virtual int setAttribute(const uint16_t attrId, const String &value);
 
     virtual int setAttribute(const uint16_t attrId, const uint16_t valueLen, const char *value);
 
@@ -86,13 +74,16 @@ public:
     virtual void mcuISR();
 
 private:
+    Stream *_theLog;
+    afSPI *_theSPI;
+
     //SPISettings _spiSettings;
-    int _chipSelect;
     volatile int _interrupts_pending;
     int _state;
     uint16_t _bytesToSend;
     uint16_t _bytesToRecv;
     int _requestId;
+    uint16_t _outstandingSetAttrId;
 
     // Application Callbacks.
     onAttributeSet _onAttrSet;
@@ -123,9 +114,9 @@ private:
 
     void printState(int state);
 
-    void beginSPI();
+    //void beginSPI();
 
-    void endSPI();
+    //void endSPI();
 
     int exchangeStatus(StatusCommand *tx, StatusCommand *rx);
 

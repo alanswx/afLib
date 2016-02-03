@@ -16,7 +16,7 @@
 
 #include <SPI.h>
 #include <iafLib.h>
-
+#include <arduinoSPI.h>
 // Include the constants required to access attribute ids from your profile.
 #include "profile/afBlink/device-description.h"
 
@@ -78,13 +78,14 @@ void setup() {
     digitalWrite(RESET, 1);
 #endif
 
+     arduinoSPI *theSPI = new arduinoSPI(CS_PIN);
+
     // Initialize the afLib
     // Just need to configure a few things:
-    // CS_PIN - the pin to use for chip select
     // INT_PIN - the pin used slave interrupt
     // onAttrSet - the function to be called when one of your attributes has been set.
     // onAttrSetComplete - the function to be called in response to a getAttribute call or when a afero attribute has been updated.
-    aflib = iafLib::create(CS_PIN, digitalPinToInterrupt(INT_PIN), ISRWrapper, onAttrSet, onAttrSetComplete);
+    aflib = iafLib::create(digitalPinToInterrupt(INT_PIN), ISRWrapper, onAttrSet, onAttrSetComplete,&Serial,theSPI);
 }
 
 void loop() {

@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-//#include "Arduino.h"
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <stdio.h>
+#include "Arduino.h"
 #include "StatusCommand.h"
 
-StatusCommand::StatusCommand(uint16_t bytesToSend) {
+StatusCommand::StatusCommand(Stream *serial,uint16_t bytesToSend) {
+    _serial = serial;
     _cmd = 0x30;
     _bytesToSend = bytesToSend;
     _bytesToRecv = 0;
 }
 
-StatusCommand::StatusCommand() {
+StatusCommand::StatusCommand(Stream *serial) {
+    _serial = serial;
     _cmd = 0x30;
     _bytesToSend = 0;
     _bytesToRecv = 0;
@@ -115,56 +112,32 @@ void StatusCommand::dumpBytes() {
     int bytes[len];
     getBytes(bytes);
 
-
-	fprintf(stdout,"len : %d\n",len);
-	fprintf(stdout,"data: ");
+    _serial->print("len  : ");
+    _serial->println(len);
+    _serial->print("data : ");
     for (int i = 0; i < len; i++) {
         if (i > 0) {
-            fprintf(stdout,", ");
+            _serial->print(", ");
         }
         int b = bytes[i] & 0xff;
         if (b < 0x10) {
-            fprintf(stdout,"0x0%x",b);
+            _serial->print("0x0");
+            _serial->print(b, HEX);
         } else {
-            fprintf(stdout,"0x%x",b);
-        }
-
-    }
-fprintf(stdout,"\n");
-#if 0
-    Serial.print("len  : ");
-    Serial.println(len);
-    Serial.print("data : ");
-    for (int i = 0; i < len; i++) {
-        if (i > 0) {
-            Serial.print(", ");
-        }
-        int b = bytes[i] & 0xff;
-        if (b < 0x10) {
-            Serial.print("0x0");
-            Serial.print(b, HEX);
-        } else {
-            Serial.print("0x");
-            Serial.print(b, HEX);
+            _serial->print("0x");
+            _serial->print(b, HEX);
         }
     }
-    Serial.println("");
-#endif
+    _serial->println("");
 }
 
 void StatusCommand::dump() {
-#if 0
-    Serial.print("cmd              : ");
-    Serial.println(_cmd == 0x30 ? "STATUS" : "STATUS_ACK");
-    Serial.print("bytes to send    : ");
-    Serial.println(_bytesToSend, DEC);
-    Serial.print("bytes to receive : ");
-    Serial.println(_bytesToRecv, DEC);
-#endif
-
-    fprintf(stdout,"cmd              : %s \n", (_cmd == 0x30 ? "STATUS" : "STATUS_ACK"));
-    fprintf(stdout,"bytes to send    : %d \n",  _bytesToSend);
-    fprintf(stdout,"bytes to receive : %d \n", _bytesToRecv);
+    _serial->print("cmd              : ");
+    _serial->println(_cmd == 0x30 ? "STATUS" : "STATUS_ACK");
+    _serial->print("bytes to send    : ");
+    _serial->println(_bytesToSend, DEC);
+    _serial->print("bytes to receive : ");
+    _serial->println(_bytesToRecv, DEC);
 }
 
 

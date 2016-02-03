@@ -17,6 +17,7 @@
 #ifndef COMMAND_H__
 #define COMMAND_H__
 
+#include "Arduino.h"
 
 #define SPI_CMD_MAX_LEN  256
 
@@ -29,18 +30,18 @@
 
 class Command {
 public:
-    Command(uint16_t len, uint8_t *bytes);
+    Command(Stream *,uint16_t len, uint8_t *bytes);
 
-    Command(uint8_t requestId, const char *str);
+    Command(Stream *,uint8_t requestId, const char *str);
 
-    Command(uint8_t requestId, uint8_t cmd, uint16_t attrId);
+    Command(Stream *,uint8_t requestId, uint8_t cmd, uint16_t attrId);
 
-    Command(uint8_t requestId, uint8_t cmd, uint16_t attrId, uint16_t valueLen, uint8_t *value);
+    Command(Stream *,uint8_t requestId, uint8_t cmd, uint16_t attrId, uint16_t valueLen, uint8_t *value);
 
-    Command(uint8_t requestId, uint8_t cmd, uint16_t attrId, uint8_t status, uint8_t reason, uint16_t valueLen,
+    Command(Stream *,uint8_t requestId, uint8_t cmd, uint16_t attrId, uint8_t status, uint8_t reason, uint16_t valueLen,
             uint8_t *value);
 
-    Command();
+    Command(Stream *);
 
     ~Command();
 
@@ -65,11 +66,14 @@ public:
     void dumpBytes();
 
 private:
+    byte getVal(char c);
     int strToValue(char *valueStr, uint8_t *value);
 
     uint8_t strToCmd(char *cmdStr);
 
     uint16_t strToAttrId(char *attrIdStr);
+
+    Stream *_serial;
 
     uint16_t _len;
     uint8_t _cmd;

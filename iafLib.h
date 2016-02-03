@@ -24,11 +24,9 @@
 #ifndef AFLIB_IAFLIB_H
 #define AFLIB_IAFLIB_H
 
-
-#include <stdint.h>
-#include <string>
-
+#include "Arduino.h"
 #include "afErrors.h"
+#include "afSPI.h"
 
 #define afMINIMUM_TIME_BETWEEN_REQUESTS     1000
 
@@ -46,15 +44,14 @@ public:
      * Create an instance of the afLib object. The afLib is a singleton. Calling this method multiple
      * times will return the same instance.
      *
-     * @param   chipSelect      The SPI chip select (SS) pin
      * @param   mcuInterrupt    The Arduino interrupt to be used (returned from digitalPinToInterrupt)
      * @param   isrWrapper      This is the isr method that must be defined in your sketch
      * @param   attrSet         Callback for notification of attribute set requests
      * @param   attrSetComplete Callback for notification of attribute set request completions
      * @return  iafLib *        Instance of iafLib
      */
-    static iafLib * create(const int chipSelect, const int mcuInterrupt, isr isrWrapper,
-                           onAttributeSet attrSet, onAttributeSetComplete attrSetComplete);
+    static iafLib * create(const int mcuInterrupt, isr isrWrapper,
+                           onAttributeSet attrSet, onAttributeSetComplete attrSetComplete, Stream *theLog, afSPI *theSPI);
 
     /**
      * loop
@@ -88,7 +85,7 @@ public:
 
     virtual int setAttribute(const uint16_t attrId, const int64_t value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const std::string &value) = 0;
+    virtual int setAttribute(const uint16_t attrId, const String &value) = 0;
 
     virtual int setAttribute(const uint16_t attrId, const uint16_t valueLen, const char *value) = 0;
 

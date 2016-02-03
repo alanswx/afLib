@@ -1,4 +1,19 @@
-
+/**
+ * Copyright 2015 Afero, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "Arduino.h"
 #include <string>
 #include "iafLib.h"
 #include <stdio.h>
@@ -11,6 +26,9 @@
 
 #include "gpiolib.h"
 #include "examples/afBlink/profile/afBlink/device-description.h"
+
+#include "linuxLog.h"
+#include "linuxSPI.h"
 
 iafLib *theLib = NULL;
 
@@ -101,22 +119,38 @@ int main(int argc, char *argv[])
         int nfds = 2;
         int gpio_fd, timeout, rc;
         char *buf[MAX_BUF];
-        unsigned int gpio = 17;/*17;*/
+        unsigned int interrupt_line= 17;/*17;*/
+        unsigned int reset_line= 4;
         int len;
         int counter=0;
 
-        gpio_export(gpio);
-        gpio_set_dir(gpio, 0);
-        gpio_set_edge(gpio, "falling");
-        gpio_fd = gpio_fd_open(gpio);
+	Stream *theLog = new linuxLog();
+        afSPI *theSPI = new linuxSPI();
+
+        gpio_export(interrupt_line);
+        gpio_set_dir(interrupt_line, 0);
+        gpio_set_edge(interrupt_line, "falling");
+        gpio_fd = gpio_fd_open(interrupt_line);
 
         timeout = POLL_TIMEOUT;
 
         fprintf(stdout,"Test\n");
 
-        theLib = iafLib::create(2,0,isr_callback,onAttributeSet_callback,onAttributeSetComplete_callback);
+        theLib = iafLib::create(0,isr_callback,onAttributeSet_callback,onAttributeSetComplete_callback,theLog,theSPI);
         theLib->mcuISR();
 
+/* we need to hook up and use the reset line */
+        gpio_export(reset_line);
+        gpio_set_dir(reset_line, 1);
+	gpio_set_value(reset_line,0);
+    
+        timespec sleep_time;
+        timespec remaining;
+        sleep_time.tv_sec=0;
+        sleep_time.tv_nsec=250000;
+        nanosleep(&sleep_time,&remaining);
+         /* check for E_INTR? and call again? */
+	gpio_set_value(reset_line,1);
 
         while (1) {
                 counter++;
@@ -145,7 +179,7 @@ int main(int argc, char *argv[])
 
                 if (fdset[1].revents & POLLPRI) {
                         len = read(fdset[1].fd, buf, MAX_BUF);
-                        printf("\npoll() GPIO %d interrupt occurred\n", gpio);
+                        printf("\npoll() GPIO %d interrupt occurred\n", interrupt_line);
                 lseek(gpio_fd, 0, SEEK_SET);    /* consume interrupt */
                 read(gpio_fd, buf, sizeof (buf));
 
@@ -154,7 +188,7 @@ int main(int argc, char *argv[])
 
                 if (fdset[0].revents & POLLIN) {
                         (void)read(fdset[0].fd, buf, 1);
-                        printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
+                        //printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
                 }
 
 
