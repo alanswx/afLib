@@ -19,10 +19,10 @@
 #include <SPI.h>
 #include "afSPI.h"
 
-class arduinoSPI : public afSPI {
+class ArduinoSPI : public afSPI {
 	public:
 
-    arduinoSPI(int chipSelect);
+    ArduinoSPI(int chipSelect);
 //afLib.cpp:    _spiSettings = SPISettings(1000000, LSBFIRST, SPI_MODE0);
         virtual void begin();
         virtual void beginSPI(); /* settings are in this class */

@@ -13,37 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "arduinoSPI.h"
+#include "ArduinoSPI.h"
 #include "Arduino.h"
 #include <SPI.h>
 
 
-arduinoSPI::arduinoSPI(int chipSelect)
+ArduinoSPI::ArduinoSPI(int chipSelect)
 {
     _chipSelect = chipSelect;
     _spiSettings = SPISettings(1000000, LSBFIRST, SPI_MODE0);
 }
 
-void arduinoSPI::begin()
+void ArduinoSPI::begin()
 {
     pinMode(_chipSelect, OUTPUT);
     digitalWrite(_chipSelect, HIGH);
     SPI.begin();
 }
-void arduinoSPI::beginSPI() /* settings are in this class */
+void ArduinoSPI::beginSPI() /* settings are in this class */
 {
     SPI.beginTransaction(_spiSettings);
     digitalWrite(_chipSelect, LOW);
     delayMicroseconds(8);
 }
 
-void arduinoSPI::endSPI()
+void ArduinoSPI::endSPI()
 {
     //delayMicroseconds(1);
     digitalWrite(_chipSelect, HIGH);
     SPI.endTransaction();
 }
-void arduinoSPI::transfer(char *bytes,int len)
+void ArduinoSPI::transfer(char *bytes,int len)
 {
   SPI.transfer(bytes,len);
 }

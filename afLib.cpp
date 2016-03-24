@@ -48,7 +48,7 @@ afLib::afLib(const int mcuInterrupt, isr isrWrapper,
     _writeCmd = NULL;
     _writeCmdOffset = 0;
 
-    _outstandingSetAttrId = 0;
+    _outstandingSetGetAttrId = 0;
 
     _readCmd = NULL;
     _readCmdOffset = 0;
@@ -127,31 +127,31 @@ int afLib::getAttribute(const uint16_t attrId) {
 /**
  * The many moods of setAttribute
  */
-int afLib::setAttribute(const uint16_t attrId, const bool value) {
+int afLib::setAttributeBool(const uint16_t attrId, const bool value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, sizeof(value),
                     (uint8_t *)&value);
 }
 
-int afLib::setAttribute(const uint16_t attrId, const int8_t value) {
+int afLib::setAttribute8(const uint16_t attrId, const int8_t value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, sizeof(value),
                     (uint8_t *)&value);
 }
 
-int afLib::setAttribute(const uint16_t attrId, const int16_t value) {
+int afLib::setAttribute16(const uint16_t attrId, const int16_t value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, sizeof(value),
                     (uint8_t *) &value);
 }
 
-int afLib::setAttribute(const uint16_t attrId, const int32_t value) {
+int afLib::setAttribute32(const uint16_t attrId, const int32_t value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, sizeof(value),
                     (uint8_t *) &value);
 }
 
-int afLib::setAttribute(const uint16_t attrId, const int64_t value) {
+int afLib::setAttribute64(const uint16_t attrId, const int64_t value) {
     _requestId++;
     return queuePut(IS_MCU_ATTR(attrId) ? MSG_TYPE_UPDATE : MSG_TYPE_SET, _requestId, attrId, sizeof(value),
                     (uint8_t *) &value);
@@ -217,6 +217,8 @@ int afLib::doGetAttribute(uint8_t requestId, uint16_t attrId) {
         return afERROR_INVALID_COMMAND;
     }
 
+    _outstandingSetGetAttrId = attrId;
+
     // Start the transmission.
     sendCommand();
 
@@ -238,7 +240,7 @@ int afLib::doSetAttribute(uint8_t requestId, uint16_t attrId, uint16_t valueLen,
         return afERROR_INVALID_COMMAND;
     }
 
-    _outstandingSetAttrId = attrId;
+    _outstandingSetGetAttrId = attrId;
 
     // Start the transmission.
     sendCommand();
@@ -395,8 +397,8 @@ void afLib::checkInterrupt(void) {
                             break;
 
                         case MSG_TYPE_UPDATE:
-                            if (_readCmd->getAttrId() == _outstandingSetAttrId) {
-                                _outstandingSetAttrId = 0;
+                            if (_readCmd->getAttrId() == _outstandingSetGetAttrId) {
+                                _outstandingSetGetAttrId = 0;
                             }
                             _onAttrSetComplete(_readCmd->getReqId(), _readCmd->getAttrId(), _readCmd->getValueLen(), val);
                             break;
@@ -411,6 +413,10 @@ void afLib::checkInterrupt(void) {
                 }
 
                 if (_writeCmd != NULL) {
+                    // Fake a callback here for MCU attributes as we don't get one from the module.
+                    if (_writeCmd->getCommand() == MSG_TYPE_UPDATE && IS_MCU_ATTR(_writeCmd->getAttrId())) {
+                        _onAttrSetComplete(_writeCmd->getReqId(), _writeCmd->getAttrId(), _writeCmd->getValueLen(), _writeCmd->getValueP());
+                    }
                     delete (_writeCmd);
                     _writeCmdOffset = 0;
                     _writeCmd = NULL;
@@ -552,7 +558,7 @@ void afLib::onIdle() {
 }
 
 bool afLib::isIdle() {
-    return _interrupts_pending == 0 && _state == STATE_IDLE && _outstandingSetAttrId == 0;
+    return _interrupts_pending == 0 && _state == STATE_IDLE && _outstandingSetGetAttrId == 0;
 }
 
 void afLib::dumpBytes(char *label, int len, uint8_t *bytes) {

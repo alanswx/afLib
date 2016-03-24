@@ -123,14 +123,14 @@ for (i=0;i<3;i++)
    int AF_Const = AF_LIGHT1LABEL;
    int AF_LConst = AF_LIGHT1;
 int v = lightState[i];
-int16_t attrVal = 0;
+bool attrVal = 0;
    switch(i)
    {
      case 0:
        AF_Const = AF_LIGHT1LABEL;
        AF_LConst = AF_LIGHT1;
  if (v) attrVal = 1; else attrVal =0;
-if (theLib->setAttribute(AF_LIGHT1, attrVal) != afSUCCESS) {
+if (theLib->setAttributeBool(AF_LIGHT1, attrVal) != afSUCCESS) {
             printf("===Could not set Attribute\n");
 }
 else
@@ -142,7 +142,7 @@ else
        AF_Const = AF_LIGHT2LABEL;
        AF_LConst = AF_LIGHT2;
  if (v) attrVal = 1; else attrVal =0;
-if (theLib->setAttribute(AF_LConst, attrVal) != afSUCCESS) {
+if (theLib->setAttributeBool(AF_LConst, attrVal) != afSUCCESS) {
             printf("===Could not set Attribute\n");
 }
 else
@@ -155,7 +155,10 @@ else
        AF_LConst = AF_LIGHT3;
 //v = lightBrightness[i];
  if (v) attrVal = 1; else attrVal =0;
-if (theLib->setAttribute(AF_LConst, &v) != afSUCCESS) {
+if (theLib->setAttribute16(AF_LConst, lightBrightness[i]) != afSUCCESS) {
+            printf("===Could not set Attribute\n");
+}
+if (theLib->setAttributeBool(AF_LConst, attrVal) != afSUCCESS) {
             printf("===Could not set Attribute\n");
 }
 else
@@ -164,7 +167,7 @@ else
 }
      break;
    }
-if (theLib->setAttribute(AF_Const, lightName[i].c_str()) != afSUCCESS) {
+if (theLib->setAttribute(AF_Const, strlen(lightName[i].c_str()),lightName[i].c_str()) != afSUCCESS) {
             printf("===Could not set Attribute\n");
 }
 else

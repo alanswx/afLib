@@ -55,6 +55,8 @@ public:
 
     void getValue(uint8_t *value);
 
+    uint8_t *getValueP();
+
     uint16_t getSize();
 
     uint16_t getBytes(uint8_t *bytes);

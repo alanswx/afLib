@@ -51,15 +51,15 @@ public:
 
     virtual int getAttribute(const uint16_t attrId);
 
-    virtual int setAttribute(const uint16_t attrId, const bool value);
+    virtual int setAttributeBool(const uint16_t attrId, const bool value);
 
-    virtual int setAttribute(const uint16_t attrId, const int8_t value);
+    virtual int setAttribute8(const uint16_t attrId, const int8_t value);
 
-    virtual int setAttribute(const uint16_t attrId, const int16_t value);
+    virtual int setAttribute16(const uint16_t attrId, const int16_t value);
 
-    virtual int setAttribute(const uint16_t attrId, const int32_t value);
+    virtual int setAttribute32(const uint16_t attrId, const int32_t value);
 
-    virtual int setAttribute(const uint16_t attrId, const int64_t value);
+    virtual int setAttribute64(const uint16_t attrId, const int64_t value);
 
     virtual int setAttribute(const uint16_t attrId, const String &value);
 
@@ -82,8 +82,8 @@ private:
     int _state;
     uint16_t _bytesToSend;
     uint16_t _bytesToRecv;
-    int _requestId;
-    uint16_t _outstandingSetAttrId;
+    uint8_t _requestId;
+    uint16_t _outstandingSetGetAttrId;
 
     // Application Callbacks.
     onAttributeSet _onAttrSet;

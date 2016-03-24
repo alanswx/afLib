@@ -166,6 +166,10 @@ void Command::getValue(uint8_t *value) {
     }
 }
 
+uint8_t *Command::getValueP() {
+    return _value;
+}
+
 uint16_t Command::getSize() {
     uint16_t len = CMD_HDR_LEN;
 

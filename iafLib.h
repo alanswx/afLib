@@ -75,15 +75,15 @@ public:
      * For MCU attributes, the attribute value will be updated.
      * For IO attributes, the attribute value will be updated, and then onAttrSetComplete will be called.
      */
-    virtual int setAttribute(const uint16_t attrId, const bool value) = 0;
+    virtual int setAttributeBool(const uint16_t attrId, const bool value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const int8_t value) = 0;
+    virtual int setAttribute8(const uint16_t attrId, const int8_t value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const int16_t value) = 0;
+    virtual int setAttribute16(const uint16_t attrId, const int16_t value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const int32_t value) = 0;
+    virtual int setAttribute32(const uint16_t attrId, const int32_t value) = 0;
 
-    virtual int setAttribute(const uint16_t attrId, const int64_t value) = 0;
+    virtual int setAttribute64(const uint16_t attrId, const int64_t value) = 0;
 
     virtual int setAttribute(const uint16_t attrId, const String &value) = 0;
 
