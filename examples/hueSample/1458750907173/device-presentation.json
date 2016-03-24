@@ -1,0 +1,237 @@
+{
+	"active": true,
+	"createdTimestamp": 1458843113687,
+	"deviceProfileId": "3ce78c82-1076-44d2-8e1e-8dcf84e4fb19",
+	"friendlyName": "Default Presentation",
+	"presentationDefinition": {
+		"attributeOptions": {
+			"1": {
+				"flags": [],
+				"label": "Light1",
+				"valueOptions": [
+					{
+						"apply": {
+							"label": "On",
+							"state": "standby"
+						},
+						"match": "1"
+					},
+					{
+						"apply": {
+							"label": "Off",
+							"state": "standby"
+						},
+						"match": "0"
+					}
+				]
+			},
+			"2": {
+				"flags": [],
+				"label": "Unknown",
+				"valueOptions": [
+					{
+						"apply": {
+							"label": "On",
+							"state": "standby"
+						},
+						"match": "1"
+					},
+					{
+						"apply": {
+							"label": "Off",
+							"state": "standby"
+						},
+						"match": "0"
+					}
+				]
+			},
+			"3": {
+				"flags": [],
+				"label": "Light3",
+				"valueOptions": [
+					{
+						"apply": {
+							"label": "Off",
+							"state": "standby"
+						},
+						"match": "0"
+					},
+					{
+						"apply": {
+							"label": "On",
+							"state": "standby"
+						},
+						"match": "1"
+					}
+				]
+			},
+			"4": {
+				"flags": [],
+				"label": "Light 1",
+				"valueOptions": null
+			},
+			"5": {
+				"flags": [],
+				"label": "Light2",
+				"valueOptions": null
+			},
+			"6": {
+				"flags": [],
+				"label": "Light3",
+				"valueOptions": null
+			},
+			"7": {
+				"flags": [],
+				"label": "Brightness",
+				"rangeOptions": {
+					"max": 254,
+					"min": 1,
+					"step": 1,
+					"unitLabel": "B"
+				}
+			}
+		},
+		"controls": [
+			{
+				"attributeMap": {
+					"value": 4
+				},
+				"controlType": "stringControl",
+				"id": 1
+			},
+			{
+				"attributeMap": {
+					"value": 1
+				},
+				"controlType": "menuControl",
+				"id": 2
+			},
+			{
+				"attributeMap": {
+					"value": 5
+				},
+				"controlType": "stringControl",
+				"id": 3
+			},
+			{
+				"attributeMap": {
+					"value": 2
+				},
+				"controlType": "menuControl",
+				"id": 4
+			},
+			{
+				"attributeMap": {
+					"value": 7
+				},
+				"controlType": "slider",
+				"id": 5
+			},
+			{
+				"attributeMap": {
+					"value": 6
+				},
+				"controlType": "stringControl",
+				"id": 6
+			},
+			{
+				"attributeMap": {
+					"value": 3
+				},
+				"controlType": "menuControl",
+				"id": 7
+			}
+		],
+		"gauge": {
+			"background": {
+				"images": []
+			},
+			"displayRules": [],
+			"foreground": {
+				"images": [
+					{
+						"uri": "device_icon_light.png"
+					}
+				]
+			}
+		},
+		"groups": [
+			{
+				"controls": [
+					1,
+					2
+				],
+				"gauge": {
+					"background": {
+						"images": []
+					},
+					"displayRules": [],
+					"foreground": {
+						"images": [
+							{
+								"uri": "device_control_icon_light.png"
+							}
+						]
+					},
+					"label": "",
+					"labelSize": ""
+				},
+				"groups": [],
+				"id": 1458751345345,
+				"label": "Light1"
+			},
+			{
+				"controls": [
+					3,
+					4
+				],
+				"gauge": {
+					"background": {
+						"images": []
+					},
+					"displayRules": [],
+					"foreground": {
+						"images": [
+							{
+								"uri": "device_control_icon_light.png"
+							}
+						]
+					},
+					"label": "",
+					"labelSize": ""
+				},
+				"groups": [],
+				"id": 1458751647042,
+				"label": "Light2"
+			},
+			{
+				"controls": [
+					6,
+					7,
+					5
+				],
+				"gauge": {
+					"background": {
+						"images": []
+					},
+					"displayRules": [],
+					"foreground": {
+						"images": [
+							{
+								"uri": "device_control_icon_light.png"
+							}
+						]
+					},
+					"label": "",
+					"labelSize": ""
+				},
+				"groups": [],
+				"id": 1458751681043,
+				"label": "Light3"
+			}
+		],
+		"label": "HueSample"
+	},
+	"presentationId": "adda81f9-ab6d-4183-a7b4-ebca93d6d7e7",
+	"valid": true
+}

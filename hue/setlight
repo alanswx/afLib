@@ -1,0 +1,2 @@
+#curl -v -s -X PUT -H "Content-Type: application/json" -d "{ \"on\": true, \"hue\": 25500, \"sat\": 100, \"bri\": 100 }" "http://10.0.2.227/api/huelibrary/lights/3/state"
+curl -v -s -X PUT -H "Content-Type: application/json" -d "{ \"on\": true, \"hue\": 25500, \"sat\": 100, \"bri\": 177 }" "http://10.0.2.227/api/huelibrary/lights/3/state"

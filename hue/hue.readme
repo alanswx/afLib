@@ -1,0 +1,6 @@
+
+Functionality we need to implement:
++ press the button on the hue, and register this device
++ get a list of all the lights, and their status
+   -- if the status changes, update the afero
++ turn a light on/off based on a message from afero

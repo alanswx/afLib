@@ -1,0 +1,162 @@
+{
+	"deviceDescriptionId": "8ae7384c-9b97-45b5-91bf-9bcf4e0b74b0",
+	"partnerId": "c08652b9-3bb5-44e8-b42c-f772f9258a7c",
+	"schemaVersion": 2,
+	"services": [
+		{
+			"id": 1,
+			"attributes": [
+				{
+					"id": 1,
+					"dataType": "BOOLEAN",
+					"semanticType": "Light1",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "00",
+					"length": 1
+				},
+				{
+					"id": 2,
+					"dataType": "BOOLEAN",
+					"semanticType": "Light2",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "00",
+					"length": 1
+				},
+				{
+					"id": 3,
+					"dataType": "BOOLEAN",
+					"semanticType": "Light3",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "00",
+					"length": 1
+				},
+				{
+					"id": 4,
+					"dataType": "UTF8S",
+					"semanticType": "Light1Label",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"length": 255
+				},
+				{
+					"id": 5,
+					"dataType": "UTF8S",
+					"semanticType": "Light2Label",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"length": 255
+				},
+				{
+					"id": 6,
+					"dataType": "UTF8S",
+					"semanticType": "Light3Label",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"length": 255
+				},
+				{
+					"id": 7,
+					"dataType": "SINT16",
+					"semanticType": "Light3Bri",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "6400",
+					"length": 2
+				},
+				{
+					"id": 2001,
+					"dataType": "SINT64",
+					"semanticType": "Bootloader Version",
+					"operations": [
+						"READ"
+					],
+					"length": 8
+				},
+				{
+					"id": 2002,
+					"dataType": "SINT64",
+					"semanticType": "Softdevice Version",
+					"operations": [
+						"READ"
+					],
+					"length": 8
+				},
+				{
+					"id": 2003,
+					"dataType": "SINT64",
+					"semanticType": "Application Version",
+					"operations": [
+						"READ"
+					],
+					"length": 8
+				},
+				{
+					"id": 2004,
+					"dataType": "SINT64",
+					"semanticType": "Profile Version",
+					"operations": [
+						"READ"
+					],
+					"length": 8
+				},
+				{
+					"id": 60000,
+					"dataType": "BOOLEAN",
+					"semanticType": "Security Enabled",
+					"operations": [
+						"READ"
+					],
+					"defaultValue": "01",
+					"length": 1
+				},
+				{
+					"id": 65019,
+					"dataType": "UTF8S",
+					"semanticType": "Reboot Reason",
+					"operations": [
+						"READ"
+					],
+					"length": 64
+				},
+				{
+					"id": 65020,
+					"dataType": "BYTES",
+					"semanticType": "BLE Comms",
+					"operations": [
+						"READ"
+					],
+					"defaultValue": "FA000000180018000C00A00F",
+					"length": 12
+				},
+				{
+					"id": 65021,
+					"dataType": "BOOLEAN",
+					"semanticType": "SPI Enabled",
+					"operations": [
+						"READ"
+					],
+					"defaultValue": "01",
+					"length": 1
+				}
+			]
+		}
+	],
+	"createdTimestamp": 1458843112787
+}
