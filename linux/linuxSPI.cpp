@@ -29,7 +29,8 @@
 static const char *device = "/dev/spidev0.0";
 //static uint8_t mode=SPI_CS_HIGH|SPI_LSB_FIRST;
 //static uint8_t mode=SPI_CS_HIGH;
-static uint8_t mode;
+//static uint8_t mode;
+static uint8_t mode = 0;
 static uint8_t bits = 8;
 static uint32_t speed = 1000000;
 //static uint32_t speed = 500000;
@@ -131,6 +132,7 @@ void linuxSPI::transfer(char *bytes,int len)
  //       uint8_t rx[len] = {0, };
 
         struct spi_ioc_transfer tr;
+        memset(&tr,0,sizeof(spi_ioc_transfer));
                 tr.tx_buf = (unsigned long)tx;
                 tr.rx_buf = (unsigned long)rx;
                 tr.len = len;

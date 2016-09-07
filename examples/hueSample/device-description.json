@@ -1,5 +1,5 @@
 {
-	"deviceDescriptionId": "8ae7384c-9b97-45b5-91bf-9bcf4e0b74b0",
+	"deviceDescriptionId": "36f21273-5944-475f-b1d2-e97845865c53",
 	"partnerId": "c08652b9-3bb5-44e8-b42c-f772f9258a7c",
 	"schemaVersion": 2,
 	"services": [
@@ -15,6 +15,7 @@
 						"WRITE"
 					],
 					"defaultValue": "00",
+					"value": "false",
 					"length": 1
 				},
 				{
@@ -26,6 +27,7 @@
 						"WRITE"
 					],
 					"defaultValue": "00",
+					"value": "false",
 					"length": 1
 				},
 				{
@@ -37,6 +39,7 @@
 						"WRITE"
 					],
 					"defaultValue": "00",
+					"value": "false",
 					"length": 1
 				},
 				{
@@ -47,7 +50,8 @@
 						"READ",
 						"WRITE"
 					],
-					"length": 255
+					"length": 255,
+					"value": null
 				},
 				{
 					"id": 5,
@@ -57,7 +61,8 @@
 						"READ",
 						"WRITE"
 					],
-					"length": 255
+					"length": 255,
+					"value": null
 				},
 				{
 					"id": 6,
@@ -67,7 +72,8 @@
 						"READ",
 						"WRITE"
 					],
-					"length": 255
+					"length": 255,
+					"value": null
 				},
 				{
 					"id": 7,
@@ -78,7 +84,20 @@
 						"WRITE"
 					],
 					"defaultValue": "6400",
+					"value": "100",
 					"length": 2
+				},
+				{
+					"id": 8,
+					"dataType": "BOOLEAN",
+					"semanticType": "pair",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "00",
+					"value": "False",
+					"length": 1
 				},
 				{
 					"id": 2001,
@@ -87,7 +106,8 @@
 					"operations": [
 						"READ"
 					],
-					"length": 8
+					"length": 8,
+					"value": null
 				},
 				{
 					"id": 2002,
@@ -96,7 +116,8 @@
 					"operations": [
 						"READ"
 					],
-					"length": 8
+					"length": 8,
+					"value": null
 				},
 				{
 					"id": 2003,
@@ -105,7 +126,8 @@
 					"operations": [
 						"READ"
 					],
-					"length": 8
+					"length": 8,
+					"value": null
 				},
 				{
 					"id": 2004,
@@ -114,7 +136,8 @@
 					"operations": [
 						"READ"
 					],
-					"length": 8
+					"length": 8,
+					"value": null
 				},
 				{
 					"id": 60000,
@@ -124,7 +147,18 @@
 						"READ"
 					],
 					"defaultValue": "01",
+					"value": "true",
 					"length": 1
+				},
+				{
+					"id": 65018,
+					"dataType": "SINT16",
+					"semanticType": "Attribute ACK",
+					"operations": [
+						"WRITE"
+					],
+					"length": 2,
+					"value": null
 				},
 				{
 					"id": 65019,
@@ -133,7 +167,8 @@
 					"operations": [
 						"READ"
 					],
-					"length": 64
+					"length": 100,
+					"value": null
 				},
 				{
 					"id": 65020,
@@ -143,6 +178,7 @@
 						"READ"
 					],
 					"defaultValue": "FA000000180018000C00A00F",
+					"value": "FA000000180018000C00A00F",
 					"length": 12
 				},
 				{
@@ -153,10 +189,11 @@
 						"READ"
 					],
 					"defaultValue": "01",
+					"value": "true",
 					"length": 1
 				}
 			]
 		}
 	],
-	"createdTimestamp": 1458843112787
+	"createdTimestamp": 1472748005544
 }
