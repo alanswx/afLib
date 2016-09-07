@@ -1,6 +1,6 @@
 /*
  * Afero Device Profile header file
- * Device Description:		36f21273-5944-475f-b1d2-e97845865c53
+ * Device Description:		c29c3738-066e-49e2-935a-90df056cbe75
  * Schema Version:	2
  */
 
@@ -54,6 +54,16 @@
 #define AF_PAIR                                                8
 #define AF_PAIR_SZ                                             1
 #define AF_PAIR_TYPE                      ATTRIBUTE_TYPE_BOOLEAN
+
+// Attribute Light1Bri
+#define AF_LIGHT1BRI                                           9
+#define AF_LIGHT1BRI_SZ                                        2
+#define AF_LIGHT1BRI_TYPE                  ATTRIBUTE_TYPE_SINT16
+
+// Attribute Light2Bri
+#define AF_LIGHT2BRI                                          10
+#define AF_LIGHT2BRI_SZ                                        2
+#define AF_LIGHT2BRI_TYPE                  ATTRIBUTE_TYPE_SINT16
 
 // Attribute Bootloader Version
 #define AF_BOOTLOADER_VERSION                               2001

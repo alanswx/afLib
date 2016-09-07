@@ -1,5 +1,5 @@
 {
-	"deviceDescriptionId": "36f21273-5944-475f-b1d2-e97845865c53",
+	"deviceDescriptionId": "c29c3738-066e-49e2-935a-90df056cbe75",
 	"partnerId": "c08652b9-3bb5-44e8-b42c-f772f9258a7c",
 	"schemaVersion": 2,
 	"services": [
@@ -100,6 +100,30 @@
 					"length": 1
 				},
 				{
+					"id": 9,
+					"dataType": "SINT16",
+					"semanticType": "Light1Bri",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "6400",
+					"value": "100",
+					"length": 2
+				},
+				{
+					"id": 10,
+					"dataType": "SINT16",
+					"semanticType": "Light2Bri",
+					"operations": [
+						"READ",
+						"WRITE"
+					],
+					"defaultValue": "6400",
+					"value": "100",
+					"length": 2
+				},
+				{
 					"id": 2001,
 					"dataType": "SINT64",
 					"semanticType": "Bootloader Version",
@@ -195,5 +219,5 @@
 			]
 		}
 	],
-	"createdTimestamp": 1472748005544
+	"createdTimestamp": 1473286670661
 }
