@@ -37,4 +37,4 @@ install:
 	ldconfig
 
 clean:
-	rm *.o linux/*.o hue/*.o afBlink hueSample afSting
+	rm *.o linux/*.o hue/*.o afsting/*.o afBlink hueSample afSting

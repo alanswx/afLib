@@ -112,7 +112,6 @@ void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mo
 	}
 	fflush(stdout);
 
-
 	std::string str(message->topic);
   	unsigned found = str.find_last_of("/");
         std::string path =  str.substr(0,found);
