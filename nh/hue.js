@@ -68,10 +68,31 @@ console.log("hue.HueApi("+hostname+","+username+")");
 api = new hue.HueApi(hostname, hueState.username);
 gapi = api;
 
+function setLightName(id,name)
+{
+    console.log("setLightName:"+id+' :'+name);
+    api.setLightName(id, name)
+    .then(displayResult)
+    .fail(displayError)
+    .done();
+}
+function setLightBri(id,message)
+{
+ var state = lightState.create();
+ var val = parseInt(message);
+console.log("setLightBri: "+id+" "+val);
+  if (val==0) state.off(); else state.on().bri(val);
+
+    api.setLightState(id, state)
+    .then(displayResult)
+    .fail(displayError)
+    .done();
+ }
+
 function toggleLightState(id,message)
 {
  var state = lightState.create();
-// Set the lamp with id '2' to on
+// Set the lamp with id to on
  if (message=="true")
  {
 console.log("got message true");
@@ -124,6 +145,24 @@ api.createUser(hostname, function(err, user) {
         break;
         case "Light3":
            toggleLightState(3,message);
+        break;
+        case "Light1Label":
+           setLightName(1,message.toString());
+        break;
+        case "Light2Label":
+           setLightName(2,message.toString());
+        break;
+        case "Light3Label":
+           setLightName(3,message.toString());
+        break;
+        case "Light1Bri":
+           setLightBri(1,message);
+        break;
+        case "Light2Bri":
+           setLightBri(2,message);
+        break;
+        case "Light3Bri":
+           setLightBri(3,message);
         break;
     }
   }
