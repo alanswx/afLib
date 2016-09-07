@@ -1,0 +1,16 @@
+{
+  "name": "nh",
+  "version": "1.0.0",
+  "description": "Node Hue MQTT connector",
+  "main": "hue.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alan Steremberg",
+  "license": "ISC",
+  "dependencies": {
+    "es6-promise": "^3.2.1",
+    "mqtt": "^1.14.1",
+    "node-hue-api": "^2.2.0"
+  }
+}
